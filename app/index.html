@@ -1,0 +1,281 @@
+<!doctype html>
+<html class="no-js">
+
+<head>
+  <meta charset="utf-8">
+  <title>OpenOlitor</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+  <!-- build:css(app) styles/vendor.css -->
+  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+  <link rel="stylesheet" href="bower_components/font-awsome/css/font-awesome.css" />
+  <!-- bower:css -->
+  <link rel="stylesheet" href="bower_components/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css" />
+  <link rel="stylesheet" href="bower_components/bootstrap3-dialog/dist/css/bootstrap-dialog.min.css" />
+  <link rel="stylesheet" href="bower_components/ng-table/dist/ng-table.min.css" />
+  <link rel="stylesheet" href="bower_components/angular-color-picker/angularjs-color-picker.css" />
+  <link rel="stylesheet" href="bower_components/angular-hamburger-toggle/dist/angular-hamburger-toggle.css" />
+  <!-- endbower -->
+  <link rel="stylesheet" href="bower_components/jasny-bootstrap/dist/css/jasny-bootstrap.css" />
+  <link href='https://fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>
+  <!-- endbuild -->
+
+  <!-- build:css(.tmp) styles/main.css -->
+  <link rel="stylesheet" href="styles/main.css">
+  <!-- endbuild -->
+</head>
+
+<body class="white openolitor" ng-app="openolitor" ng-controller="OpenOlitorRootController">
+  <!-- top navbar -->
+  <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+      <div>
+        <hamburger-toggle state="tgState" class="hamburger-toggle" ng-show="loggedIn"></hamburger-toggle>
+        <a class="navbar-brand" ng-href="#/abos">OpenOlitor</a>
+        <p class="navbar-text"><span translate>Administrationsumgebung für</span> <span>{{projekt.bezeichnung}}</span></p>
+        <ul class="nav navbar-nav pull-right">
+          <li class="active lang-chooser" ng-hide="activeLang() === 'de'"><a role="button" ng-click="changeLang('de')" title="Deutsch"><span>DE</span></a></li>
+          <li class="active lang-chooser" ng-hide="activeLang() === 'fr'"><a role="button" ng-click="changeLang('fr')" title="Français"><span>FR</span></a></li>
+          <li class="active lang-chooser" ng-hide="activeLang() === 'en'"><a role="button" ng-click="changeLang('en')" title="English"><span>EN</span></a></li>
+          <li class="dropdown" ng-show="loggedIn">
+            <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{user.vorname}} {{user.name}} <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="#" translate>Einstellungen</a></li>
+              <li role="separator" class="divider"></li>
+              <li ng-if="env !== 'test'"><a href="#/passwd" translate>Passwort wechseln</a></li>
+              <li><a href="#/logout" translate>Abmelden</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div ng-if="!connected && showConnectionErrorMessage" class="connected-alert alert alert-danger" role="alert" translate>Das Backend steht im Moment nicht zur Verfügung. Bitte besuchen Sie uns später wieder.</div>
+
+  <div class="sidenav" ng-class="{open: tgState}" ng-show="loggedIn">
+    <ul class="sidebar-nav" ng-init="menushow = []">
+      <li><a id="nav-kunden" class="nav-item" ng-class="[{active:currentPathContains('kunden')}]" href="" ng-href="#/kunden"><i class="fa fa-user"></i> <span translate>Kunden</span></a></li>
+      <li><a id="nav-abos" class="nav-item" ng-class="[{active:currentPathContains('abos')}]" href="" ng-href="#/abos"><i class="fa fa-shopping-cart"></i> <span translate>Abos</span></a></li>
+      <li><a id="nav-pendenzen" class="nav-item" ng-class="[{active:currentPathContains('pendenzen')}]" href="" ng-href="#/pendenzen"><i class="fa fa-sticky-note"></i> <span translate>Pendenzen</span></a></li>
+      <li><a id="nav-lieferanten" class="nav-item" ng-click="menushow['lieferanten'] = !menushow['lieferanten']"><span><i class="fa fa-truck"></i> <span translate>Lieferanten</span></span></a></li>
+      <li activate-id="lieferanten" ng-show="menushow['lieferanten']"><a id="nav-lieferplanung" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('lieferplanung')}]" href="" ng-href="#/lieferplanung"><i class="fa fa-shopping-basket"></i> <span translate>Lieferplanung</span></a></li>
+      <li activate-id="lieferanten" ng-show="menushow['lieferanten']"><a id="nav-lieferantenabrechnung" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('lieferantenabrechnung')}]" href="" ng-href="#/lieferantenabrechnung"><i class="fa fa-calculator"></i> <span translate>Abrechnung*</span></a></li>
+      <li><a id="nav-auslieferungen" class="nav-item" ng-click="menushow['auslieferungen'] = !menushow['auslieferungen']"><span><i class="fa fa-bicycle"></i> <span translate>Auslieferungen</span></span></a></li>
+      <li activate-id="auslieferungen" ng-show="menushow['auslieferungen']"><a id="nav-depotausauslieferungen" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('depotauslieferungen')}]" href="" ng-href="#/depotauslieferungen"><i class="fa fa-building-o"></i> <span translate>Depotauslieferungen</span></a></li>
+      <li activate-id="auslieferungen" ng-show="menushow['auslieferungen']"><a id="nav-tourausauslieferungen" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('tourauslieferungen')}]" href="" ng-href="#/tourauslieferungen"><i class="fa fa-truck"></i> <span translate>Tourauslieferungen</span></a></li>
+      <li activate-id="auslieferungen" ng-show="menushow['auslieferungen']"><a id="nav-postauslieferungen" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('postauslieferungen')}]" href="" ng-href="#/postauslieferungen"><i class="fa fa-envelope"></i> <span translate>Postauslieferungen</span></a></li>
+      <li><a id="nav-buchhaltung" class="nav-item" ng-click="menushow['buchhaltung'] = !menushow['buchhaltung']"><span><i class="fa fa-usd"></i> <span translate>Buchhaltung</span></span></a></li>
+      <li activate-id="buchhaltung" ng-show="menushow['buchhaltung']"><a id="nav-rechnungen" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('rechnungen')}]" href="" ng-href="#/rechnungen"><i class="fa fa-envelope-o"></i> <span translate>Rechnungen</span></a></li>
+      <li activate-id="buchhaltung" ng-show="menushow['buchhaltung']"><a id="nav-zahlungsimports" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('zahlungsimports')}]" href="" ng-href="#/zahlungsimports"><i class="fa fa-credit-card"></i> <span translate>Zahlungs-Imports</span></a></li>
+      <li activate-id="buchhaltung" ng-show="menushow['buchhaltung']"><a id="nav-einkauf" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('einkauf')}]" href="" ng-href="#/einkauf"><i class="fa fa-shopping-bag"></i> <span translate>Einkauf*</span></a></li>
+      <li><a id="nav-stammdaten" class="nav-item" ng-click="menushow['stammdaten'] = !menushow['stammdaten']"><span><i class="fa fa-database"></i> <span translate>Stammdaten</span></span></a></li>
+      <li activate-id="stammdaten" ng-show="menushow['stammdaten']"><a id="nav-depots" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('depots')}]" href="" ng-href="#/depots"><i class="fa fa-building-o"></i> <span translate>Depots</span></a></li>
+      <li activate-id="stammdaten" ng-show="menushow['stammdaten']"><a id="nav-touren" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('touren')}]" href="" ng-href="#/touren"><i class="fa fa-map-signs"></i> <span translate>Touren</span></a></li>
+      <li activate-id="stammdaten" ng-show="menushow['stammdaten']"><a id="nav-abotypen" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('abotypen')}]" href="" ng-href="#/abotypen"><i class="fa fa-clone"></i> <span translate>Abotypen</span></a></li>
+      <li activate-id="stammdaten" ng-show="menushow['stammdaten']"><a id="nav-produzenten" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('produzenten')}]" href="" ng-href="#/produzenten"><i class="fa fa-leaf"></i> <span translate>Produzenten</span></a></li>
+      <li activate-id="stammdaten" ng-show="menushow['stammdaten']"><a id="nav-produkte" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('produkte')}]" href="" ng-href="#/produkte"><i class="fa fa-pagelines"></i> <span translate>Produkte</span></a></li>
+      <li><a id="nav-reports" class="nav-item" ng-click="menushow['reports'] = !menushow['reports']" href="" ng-href="#/reports"><span><i class="fa fa-bar-chart"></i> <span translate>Reports*</span></span></a></li>
+      <li><a id="nav-einstellungen" class="nav-item" ng-click="menushow['einstellungen'] = !menushow['einstellungen']"><span><i class="fa fa-cogs"></i> <span translate>Einstellungen</span></span></a></li>
+      <li activate-id="einstellungen" ng-show="menushow['einstellungen']"><a id="nav-settings" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('settings')}]" href="" ng-href="#/settings"><i class="fa fa-sitemap"></i> <span translate>Projekt</span></a></li>
+      <li activate-id="einstellungen" ng-show="menushow['einstellungen']"><a id="nav-templates" class="nav-item sublevel-1" ng-class="[{active:currentPathContains('templates')}]" href="" ng-href="#/templates"><i class="fa fa-file-text-o"></i> <span translate>Vorlagen*</span></a></li>
+    </ul>
+  </div>
+
+  <div class="master-content content" ng-class="{'sidenav-open': tgState}">
+    <!--[if lt IE 9]>
+          <p class="browsehappy" translate>Sie nutzen einen <strong>alten</strong> Browser. Bitte <a href="http://browsehappy.com/">installieren</a> Sie einen aktuelle Brwoser. So stellen Sie sicher, dass dies Webseite wie beabsichtigt funktioniert.</p>
+      <![endif]-->
+    <div ng-view="" ng-cloak class="container-fluid"></div>
+  </div>
+
+  <footer>
+    <a href="http://www.openolitor.ch" target="_blank">www.openolitor.ch</a> Build: UI #{{buildNr}} WS: #{{serverInfo.buildNr}} Env: {{env}}
+    <span ng-class="[{disconnected:!connected, connected:connected}]"><i class="fa fa-wifi" ng-attr-title="{{messagingSocketClosedReason}}"></i></span>
+  </footer>
+
+
+  <!-- build:js(.) scripts/oldieshim.js -->
+  <!--[if lt IE 9]>
+    <script src="vendor/es5-shim/es5-shim.js"></script>
+    <script src="vendor/json3/lib/json3.min.js"></script>
+    <![endif]-->
+  <!-- endbuild -->
+
+  <!-- build:js(app) scripts/vendor.js -->
+  <!-- bower:js -->
+  <script src="bower_components/es5-shim/es5-shim.js"></script>
+  <script src="bower_components/jquery/dist/jquery.js"></script>
+  <script src="bower_components/angular/angular.js"></script>
+  <script src="bower_components/angular-animate/angular-animate.js"></script>
+  <script src="bower_components/angular-base64/angular-base64.js"></script>
+  <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+  <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+  <script src="bower_components/bootstrap-switch/dist/js/bootstrap-switch.js"></script>
+  <script src="bower_components/angular-bootstrap-switch/dist/angular-bootstrap-switch.js"></script>
+  <script src="bower_components/angular-cookie/angular-cookie.js"></script>
+  <script src="bower_components/angular-cookies/angular-cookies.js"></script>
+  <script src="bower_components/angular-gettext/dist/angular-gettext.js"></script>
+  <script src="bower_components/angular-loader/angular-loader.js"></script>
+  <script src="bower_components/angular-resource/angular-resource.js"></script>
+  <script src="bower_components/angular-route/angular-route.js"></script>
+  <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+  <script src="bower_components/angular-touch/angular-touch.js"></script>
+  <script src="bower_components/bootstrap3-dialog/dist/js/bootstrap-dialog.min.js"></script>
+  <script src="bower_components/json3/lib/json3.js"></script>
+  <script src="bower_components/ng-table/dist/ng-table.min.js"></script>
+  <script src="bower_components/ng-table-export/ng-table-export.js"></script>
+  <script src="bower_components/jasny-bootstrap/dist/js/jasny-bootstrap.js"></script>
+  <script src="bower_components/bootstrap-ui-datetime-picker/dist/datetime-picker.min.js"></script>
+  <script src="bower_components/tinycolor/tinycolor.js"></script>
+  <script src="bower_components/angular-color-picker/angularjs-color-picker.js"></script>
+  <script src="bower_components/angular-hamburger-toggle/dist/angular-hamburger-toggle.js"></script>
+  <script src="bower_components/moment/min/moment-with-locales.min.js"></script>
+  <script src="bower_components/angular-moment/angular-moment.js"></script>
+  <script src="bower_components/blob-polyfill/Blob.js"></script>
+  <script src="bower_components/file-saver.js/FileSaver.js"></script>
+  <script src="bower_components/angular-file-saver/dist/angular-file-saver.bundle.js"></script>
+  <script src="bower_components/ng-file-upload/ng-file-upload.js"></script>
+  <script src="bower_components/ng-lodash/build/ng-lodash.js"></script>
+  <script src="bower_components/angular-filter/dist/angular-filter.min.js"></script>
+  <script src="bower_components/lodash/lodash.js"></script>
+  <script src="bower_components/ng-password-strength/dist/scripts/ng-password-strength.js"></script>
+  <script src="bower_components/angular-messages/angular-messages.js"></script>
+  <script src="bower_components/angular-sortable-view/src/angular-sortable-view.js"></script>
+  <!-- endbower -->
+  <!-- endbuild -->
+
+  <!-- language specific angular file -->
+  <script src="https://code.angularjs.org/1.4.9/i18n/angular-locale_de-ch.js"></script>
+
+  <!-- build:js({.tmp,app}) scripts/scripts.js -->
+  <script src="scripts/app.js"></script>
+  <script src="scripts/root.js"></script>
+  <script src="scripts/common/filters/oo-preisproeinheit.filter.js"></script>
+  <script src="scripts/common/filters/oo-chf.filter.js"></script>
+  <script src="scripts/common/components/oo-erroroverlay.directive.js"></script>
+  <script src="scripts/common/components/oo-dropdown.directive.js"></script>
+  <script src="scripts/common/components/oo-liefertage.directive.js"></script>
+  <script src="scripts/common/components/oo-datepicker.directive.js"></script>
+  <script src="scripts/common/components/oo-kundentypen.directive.js"></script>
+  <script src="scripts/common/components/oo-savebutton.directive.js"></script>
+  <script src="scripts/common/components/oo-actionsbutton.directive.js"></script>
+  <script src="scripts/common/components/oo-deletebutton.directive.js"></script>
+  <script src="scripts/common/components/oo-dialogokabort.directive.js"></script>
+  <script src="scripts/common/components/oo-stop-event.directive.js"></script>
+  <script src="scripts/common/components/oo-generate-report.directive.js"></script>
+  <script src="scripts/common/components/oo-uuid.js"></script>
+  <script src="scripts/common/components/oo-dragdrop.js"></script>
+  <script src="scripts/common/utils/enum.util.js"></script>
+  <script src="scripts/common/utils/data.util.js"></script>
+  <script src="scripts/common/utils/file.util.js"></script>
+  <script src="scripts/common/utils/filterquery.util.js"></script>
+  <script src="scripts/common/utils/overviewcheckbox.util.js"></script>
+  <script src="scripts/common/services/oo-messages.service.js"></script>
+  <script src="scripts/common/services/oo-alert.service.js"></script>
+  <script src="scripts/common/services/oo-auth.service.js"></script>
+  <script src="scripts/common/services/oo-dialog.service.js"></script>
+  <script src="scripts/common/ngtable/oo-ngtable-export.controller.js"></script>
+  <script src="scripts/common/ng/auto-focus.directive.js"></script>
+  <script src="scripts/common/ng/http-src.directive.js"></script>
+
+  <script src="scripts/login/login.controller.js"></script>
+
+  <script src="scripts/abotypen/overview/abotypenoverview.model.js"></script>
+  <script src="scripts/abotypen/overview/abotypenoverview.controller.js"></script>
+  <script src="scripts/abotypen/detail/vertriebsarten/vertriebsarten.controller.js"></script>
+  <script src="scripts/abotypen/detail/vertriebsarten/vertriebe.model.js"></script>
+  <script src="scripts/abotypen/detail/vertriebsarten/vertriebsarten.model.js"></script>
+  <script src="scripts/abotypen/detail/abotypendetail.model.js"></script>
+  <script src="scripts/abotypen/detail/abotypendetail.controller.js"></script>
+  <script src="scripts/abotypen/detail/lieferungen/lieferungen.controller.js"></script>
+  <script src="scripts/abotypen/detail/lieferungen/lieferungen.model.js"></script>
+  <script src="scripts/abotypen/detail/lieferungen/generate-lieferungen.controller.js"></script>
+
+  <script src="scripts/kundentypen/kundentypenlist.model.js"></script>
+  <script src="scripts/kundentypen/kundentypenlist.service.js"></script>
+
+  <script src="scripts/produktekategorie/produktekategorienlist.model.js"></script>
+  <script src="scripts/produktekategorie/produktekategorienlist.service.js"></script>
+
+  <script src="scripts/kunden/overview/kundenoverview.model.js"></script>
+  <script src="scripts/kunden/overview/kundenoverview.controller.js"></script>
+  <script src="scripts/kunden/detail/kundendetail.model.js"></script>
+  <script src="scripts/kunden/detail/pendenzdetail.model.js"></script>
+  <script src="scripts/kunden/detail/kundendetail.controller.js"></script>
+  <script src="scripts/kunden/detail/rechnungen/kundenrechnungen.model.js"></script>
+
+  <script src="scripts/produzenten/produzenten.model.js"></script>
+  <script src="scripts/produzenten/produzentenlist.service.js"></script>
+  <script src="scripts/produzenten/overview/produzentenoverview.controller.js"></script>
+  <script src="scripts/produzenten/detail/produzentendetail.model.js"></script>
+  <script src="scripts/produzenten/detail/produzentendetail.controller.js"></script>
+
+  <script src="scripts/produkte/produkte.model.js"></script>
+  <script src="scripts/produkte/produktelist.service.js"></script>
+  <script src="scripts/produkte/overview/produkteoverview.controller.js"></script>
+
+  <script src="scripts/depots/overview/depotsoverview.model.js"></script>
+  <script src="scripts/depots/overview/depotsoverview.controller.js"></script>
+  <script src="scripts/depots/detail/depotsdetail.model.js"></script>
+  <script src="scripts/depots/detail/depotsdetail.controller.js"></script>
+
+  <script src="scripts/touren/touren.model.js"></script>
+  <script src="scripts/touren/tourenlist.service.js"></script>
+  <script src="scripts/touren/overview/tourenoverview.controller.js"></script>
+  <script src="scripts/touren/detail/tourendetail.model.js"></script>
+  <script src="scripts/touren/detail/tourlieferungen.directive.js"></script>
+  <script src="scripts/touren/detail/tourendetail.controller.js"></script>
+
+  <script src="scripts/abos/overview/abosoverview.model.js"></script>
+  <script src="scripts/abos/overview/abosoverview.service.js"></script>
+  <script src="scripts/abos/overview/abosoverview.controller.js"></script>
+  <script src="scripts/abos/overview/abosoverviewcreaterechnungen.controller.js"></script>
+  <script src="scripts/abos/overview/abosoverviewcreaterechnungen.directive.js"></script>
+  <script src="scripts/abos/detail/abosdetail.model.js"></script>
+  <script src="scripts/abos/detail/abosdetail.controller.js"></script>
+  <script src="scripts/abos/detail/abosdetail.directive.js"></script>
+  <script src="scripts/abos/detail/abosdetail-guthaben-anpassen.controller.js"></script>
+  <script src="scripts/abos/detail/abosdetail-vertriebsart-anpassen.controller.js"></script>
+  <script src="scripts/abos/detail/abosnew.directive.js"></script>
+
+  <script src="scripts/abos/detail/abwesenheiten/abwesenheiten.directive.js"></script>
+  <script src="scripts/abos/detail/abwesenheiten/abwesenheiten.model.js"></script>
+
+  <script src="scripts/pendenzen/overview/pendenzenoverview.model.js"></script>
+  <script src="scripts/pendenzen/overview/pendenzenoverview.controller.js"></script>
+
+  <script src="scripts/lieferplanungen/overview/lieferplanungoverview.controller.js"></script>
+  <script src="scripts/lieferplanungen/detail/lieferplanung.controller.js"></script>
+  <script src="scripts/lieferplanungen/lieferplanung.model.js"></script>
+
+  <script src="scripts/auslieferungen/overview/auslieferungenoverview.controller.js"></script>
+  <script src="scripts/auslieferungen/depotauslieferungen.model.js"></script>
+  <script src="scripts/auslieferungen/tourauslieferungen.model.js"></script>
+  <script src="scripts/auslieferungen/postauslieferungen.model.js"></script>
+
+  <script src="scripts/rechnungen/overview/rechnungenoverview.model.js"></script>
+  <script src="scripts/rechnungen/overview/rechnungenoverview.controller.js"></script>
+  <script src="scripts/rechnungen/detail/rechnungendetail.model.js"></script>
+  <script src="scripts/rechnungen/detail/rechnungendetail.controller.js"></script>
+
+  <script src="scripts/zahlungsimports/overview/zahlungsimportsoverview.model.js"></script>
+  <script src="scripts/zahlungsimports/overview/zahlungsimportsoverview.controller.js"></script>
+  <script src="scripts/zahlungsimports/import/zahlungsimports.model.js"></script>
+  <script src="scripts/zahlungsimports/import/zahlungsimports.controller.js"></script>
+  <script src="scripts/zahlungsimports/import/zahlungseingaenge.model.js"></script>
+
+  <script src="scripts/projekt/projekt.model.js"></script>
+  <script src="scripts/projekt/projekt.service.js"></script>
+  <script src="scripts/projekt/settings/projektsettings.controller.js"></script>
+
+  <script src="scripts/server/server.model.js"></script>
+  <script src="scripts/server/server.service.js"></script>
+
+  <script src="scripts/i18n/translations.js"></script>
+  <!-- endbuild -->
+</body>
+
+</html>
